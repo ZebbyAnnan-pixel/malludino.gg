@@ -3,130 +3,208 @@
 <head>
 <meta charset="UTF-8">
 <title>malludino.gg</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
 <style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
 body{
-    margin:0;
-    font-family:Arial;
-    background:#111;
+    font-family:'Orbitron',sans-serif;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
     color:white;
     text-align:center;
+    overflow-x:hidden;
 }
-h1{margin-top:40px;}
+
+h1{
+    margin-top:40px;
+    font-size:50px;
+    letter-spacing:3px;
+    background:linear-gradient(90deg,#00f5a0,#00d9f5);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+#menu{
+    margin-top:50px;
+}
+
 button{
-    padding:12px 25px;
-    margin:10px;
+    padding:15px 40px;
+    margin:15px;
     font-size:18px;
     border:none;
+    border-radius:50px;
     cursor:pointer;
-    border-radius:8px;
+    transition:0.3s;
+    font-family:'Orbitron',sans-serif;
 }
-#normalBtn{background:#00cc66;}
-#rishiBtn{background:#ff4444;}
-#menu{margin-top:50px;}
+
+.modeBtn{
+    background:rgba(255,255,255,0.1);
+    color:white;
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.2);
+}
+
+.modeBtn:hover{
+    transform:scale(1.1);
+    background:linear-gradient(90deg,#00f5a0,#00d9f5);
+    color:black;
+}
+
 canvas{
-    background:white;
     display:none;
-    margin:auto;
-    border:3px solid black;
+    margin:40px auto;
+    background:#f4f4f4;
+    border-radius:20px;
+    box-shadow:0 0 40px rgba(0,255,255,0.3);
 }
+
+#score{
+    font-size:20px;
+    margin-top:10px;
+    display:none;
+}
+
 #gameOver{
     display:none;
-    font-size:24px;
     margin-top:20px;
+    font-size:25px;
+}
+
+#credits{
+    margin-top:80px;
+    padding:40px 20px;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
+}
+
+.socialBtn{
+    padding:10px 25px;
+    border-radius:30px;
+    background:linear-gradient(90deg,#ff416c,#ff4b2b);
+    color:white;
+    text-decoration:none;
+    display:inline-block;
+    margin-top:15px;
+    transition:0.3s;
+}
+
+.socialBtn:hover{
+    transform:scale(1.1);
 }
 </style>
 </head>
+
 <body>
 
 <h1>malludino.gg</h1>
 
 <div id="menu">
-    <button id="normalBtn">Normal Mode</button>
-    <button id="rishiBtn">Rishi Mode</button>
+    <button class="modeBtn" onclick="startGame('normal')">Normal Mode</button>
+    <button class="modeBtn" onclick="startGame('rishi')">Rishi Mode</button>
 </div>
 
 <canvas id="gameCanvas" width="900" height="250"></canvas>
+<div id="score">Score: 0</div>
 
 <div id="gameOver">
-    Game Over! <br>
-    <button onclick="restartGame()">Restart</button>
+    Game Over!<br><br>
+    <button class="modeBtn" onclick="restartGame()">Restart</button>
+</div>
+
+<div id="credits">
+    <h2>Created by Anandhuz 🚀</h2>
+    <p>malludino.gg | Contest Edition</p>
+    <a class="socialBtn" href="https://www.instagram.com/i.wzieeeeeeeeeeeeeeeeeeeeeeeee/" target="_blank">
+        Visit My Instagram
+    </a>
 </div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const menu = document.getElementById("menu");
-const gameOverText = document.getElementById("gameOver");
+let mode="normal";
+let dinoY=180;
+let velocity=0;
+let gravity=0.8;
+let jumping=false;
+let obstacleX=900;
+let speed=7;
+let score=0;
+let gameRunning=false;
 
-let dinoMode = "normal";
-let dinoY = 180;
-let velocity = 0;
-let gravity = 0.8;
-let jumping = false;
-let obstacleX = 900;
-let speed = 6;
-let gameRunning = false;
+const rishiImg=new Image();
+rishiImg.src="rishi.png";
 
-const rishiImg = new Image();
-rishiImg.src = "rishi-dino.png";
-
-function startGame(mode){
-    dinoMode = mode;
-    menu.style.display = "none";
-    canvas.style.display = "block";
-    gameRunning = true;
+function startGame(selectedMode){
+    mode=selectedMode;
+    document.getElementById("menu").style.display="none";
+    canvas.style.display="block";
+    document.getElementById("score").style.display="block";
+    gameRunning=true;
     gameLoop();
 }
 
-document.getElementById("normalBtn").onclick = ()=>startGame("normal");
-document.getElementById("rishiBtn").onclick = ()=>startGame("rishi");
-
-document.addEventListener("keydown", jump);
-canvas.addEventListener("click", jump);
-
 function jump(){
     if(!jumping && gameRunning){
-        velocity = -14;
-        jumping = true;
+        velocity=-15;
+        jumping=true;
     }
 }
 
+document.addEventListener("keydown",jump);
+canvas.addEventListener("click",jump);
+
+function drawGround(){
+    ctx.strokeStyle="#333";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(0,220);
+    ctx.lineTo(900,220);
+    ctx.stroke();
+}
+
 function drawDino(){
-    if(dinoMode === "normal"){
+    if(mode==="normal"){
         ctx.fillStyle="black";
-        ctx.fillRect(80, dinoY, 40, 40);
+        ctx.fillRect(80,dinoY,40,40);
+        ctx.fillRect(110,dinoY-10,15,20);
     }else{
-        ctx.drawImage(rishiImg, 80, dinoY, 50, 50);
+        ctx.drawImage(rishiImg,80,dinoY,55,55);
     }
 }
 
 function drawObstacle(){
-    ctx.fillStyle="green";
-    ctx.fillRect(obstacleX, 190, 25, 50);
+    ctx.fillStyle="#228B22";
+    ctx.fillRect(obstacleX,185,30,60);
 }
 
 function update(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    velocity += gravity;
-    dinoY += velocity;
+    velocity+=gravity;
+    dinoY+=velocity;
 
-    if(dinoY >= 180){
-        dinoY = 180;
-        jumping = false;
+    if(dinoY>=180){
+        dinoY=180;
+        jumping=false;
     }
 
-    obstacleX -= speed;
-    if(obstacleX < -20){
-        obstacleX = 900;
+    obstacleX-=speed;
+    if(obstacleX<-20){
+        obstacleX=900;
+        score++;
+        document.getElementById("score").innerText="Score: "+score;
     }
 
+    drawGround();
     drawDino();
     drawObstacle();
 
-    // Collision
-    if(obstacleX < 120 && obstacleX > 60 && dinoY > 160){
+    if(obstacleX<120 && obstacleX>60 && dinoY>160){
         endGame();
     }
 }
@@ -138,16 +216,18 @@ function gameLoop(){
 }
 
 function endGame(){
-    gameRunning = false;
-    gameOverText.style.display="block";
+    gameRunning=false;
+    document.getElementById("gameOver").style.display="block";
 }
 
 function restartGame(){
-    obstacleX = 900;
-    dinoY = 180;
-    velocity = 0;
-    gameOverText.style.display="none";
-    gameRunning = true;
+    obstacleX=900;
+    dinoY=180;
+    velocity=0;
+    score=0;
+    document.getElementById("score").innerText="Score: 0";
+    document.getElementById("gameOver").style.display="none";
+    gameRunning=true;
     gameLoop();
 }
 </script>
